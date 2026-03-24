@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Anchor Notes</string>
+    <string name="widget_no_note_title">No note pinned</string>
+    <string name="widget_no_note_content">Open Anchor and pin a note to display it here</string>
+</resources>

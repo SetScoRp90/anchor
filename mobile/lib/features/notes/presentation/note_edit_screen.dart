@@ -16,6 +16,7 @@ import 'package:anchor/features/notes/presentation/widgets/note_background.dart'
 import 'package:anchor/features/notes/presentation/widgets/note_background_picker.dart';
 import 'package:anchor/features/notes/presentation/widgets/share_note_sheet.dart';
 import '../data/repository/notes_repository.dart';
+import '../../widget/widget_service.dart';
 
 class NoteEditScreen extends ConsumerStatefulWidget {
   final String? noteId;
@@ -560,6 +561,31 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
     }
   }
 
+  Future<void> _pinToWidget() async {
+    final note = _existingNote;
+    if (note == null) return;
+
+    // Save any pending changes first so the widget shows current content
+    if (_hasUnsavedChanges) {
+      await _autoSave();
+    }
+
+    // Build an up-to-date snapshot with whatever is currently in the editor
+    final title = _titleController.text.trim();
+    final editorState = _editorKey.currentState;
+    final content = editorState?.getContent() ?? note.content ?? '';
+    final snapshot = note.copyWith(
+      title: title.isNotEmpty ? title : note.title,
+      content: content,
+    );
+
+    await WidgetService.pinNoteToWidget(snapshot);
+
+    if (mounted) {
+      AppSnackbar.showSuccess(context, message: 'Note pinned to widget');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -639,6 +665,13 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen>
                         ),
                       ),
                     ),
+                  ),
+                // Pin to widget - available for any active, saved note
+                if (_isLoaded && !_isNew)
+                  IconButton(
+                    icon: const Icon(LucideIcons.layoutDashboard),
+                    onPressed: _pinToWidget,
+                    tooltip: 'Pin to widget',
                   ),
                 // Background and Pin - shown for non-read-only (owners and editors)
                 if (!isReadOnly) ...[
